@@ -146,7 +146,8 @@ struct Box {
     status: Vec<(usize, usize, usize, usize)>,
     max_x: usize,
     max_y: usize,
-    sum_area: usize,
+    col_info: Vec<(usize, usize)>,  // (max_w, sum_h)
+    area_info: Vec<usize>,
     order: Vec<(usize, char, isize)>,
 }
 
@@ -156,20 +157,32 @@ impl Box {
         let status = Vec::new();
         let max_x = 0;
         let max_y = 0;
-        let sum_area = 0;
+        let col_info = Vec::new();  // 列に追加したグッズの(max_w, sum_h)
+        let area_info = Vec::new();  // 列に追加したグッズの面積の合計
         let order = Vec::new();
-        Box { goods, status, max_x, max_y, sum_area, order }
+        Box { goods, status, max_x, max_y, col_info, area_info, order }
     }
 
     fn opt_instruction(&self, wh: (usize, usize), d: char, b: isize) -> (usize, char) {
         let mut opt_r = 0;
         let mut opt_eval = 0.0;
 
+        // 回転の評価
         for r in [0, 1] {
+            // 一つ前の位置を取得
             let (x1, y1, x2, y2) = self.put(wh, r, d, b);
-            let max_x = self.max_x.max(x2);
-            let max_y = self.max_y.max(y2);
-            let eval = (self.sum_area + (wh.0 * wh.1)) as f64 / (max_x * max_y) as f64;
+            let (mut max_x, mut sum_y) = match self.col_info.last() {
+                Some(&last) => { last },
+                None => { (0, 0) },
+            };
+            max_x = max_x.max(x2);
+            sum_y = sum_y + (y2-y1);
+            let (pre_max_x, _) = if self.col_info.len() > 1 { self.col_info[self.col_info.len()-1] } else { (0, 0) };
+            let area = match self.area_info.last() {
+                Some(&last) => last,
+                None => 0,
+            };
+            let eval = (area + (wh.0 * wh.1)) as f64 / (sum_y * (max_x - pre_max_x)) as f64;
             if eval > opt_eval {
                 opt_eval = eval;
                 opt_r = r;
@@ -180,6 +193,11 @@ impl Box {
     }
 
     fn add(&mut self, wh: (usize, usize), r: usize, d: char, b: isize) {
+        if b == -1 {
+            self.col_info.push((0, 0));
+            self.area_info.push(0);
+        }
+
         self.goods.push(wh);
         self.order.push((r, d, b));
 
@@ -188,7 +206,10 @@ impl Box {
         self.status.push((x1, y1, x2, y2));
         self.max_x = self.max_x.max(x2);
         self.max_y = self.max_y.max(y2);
-        self.sum_area += wh.0 * wh.1;
+        let (max_x, sum_y) = self.col_info.last_mut().unwrap();
+        *max_x = (*max_x).max(x2);
+        *sum_y += y2-y1;
+        *(self.area_info.last_mut().unwrap()) += wh.0 * wh.1;
     }
 
     fn put(&self, wh: (usize, usize), r: usize, d: char, b: isize) -> (usize, usize, usize, usize) {
