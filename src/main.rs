@@ -71,8 +71,8 @@ impl Solver {
         let ref_h = (sum_area as f64).sqrt() as usize;
 
         // ビーム
-        let beams_width = self.t.min(2400 / self.n);  // self.tの方が良い
-        let trial = 600 / self.n;
+        let beams_width = self.t.min(4800 / self.n);  // self.tの方が良い
+        let trial = 2400 / self.n;
         let mut beams: BinaryHeap<(usize, Box)> = BinaryHeap::new();
         let r#box = Box::new(ref_h);
         let mut hashes: HashSet<u64> = HashSet::new();
