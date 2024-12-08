@@ -72,7 +72,7 @@ impl Solver {
 
         // ビーム
         let beams_width = self.t;
-        let trial = 2400 / self.n;
+        let trial = 1200 / self.n;
         let mut beams: BinaryHeap<(usize, Box)> = BinaryHeap::new();
         let r#box = Box::new(ref_h);
         let mut hashes: HashSet<u64> = HashSet::new();
