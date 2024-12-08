@@ -1,8 +1,16 @@
 use proconio::input_interactive;
-use std::collections::{VecDeque, BinaryHeap};
+use std::collections::{VecDeque, BinaryHeap, HashSet};
 use rand::Rng;
 use rand::SeedableRng;
 use rand::rngs::StdRng;
+use std::collections::hash_map::DefaultHasher;
+use std::hash::{Hash, Hasher};
+
+fn calculate_hash<T: Hash>(t: &T) -> u64 {
+    let mut hasher = DefaultHasher::new();
+    t.hash(&mut hasher);
+    hasher.finish()
+}
 
 struct Solver {
     n: usize,
@@ -63,10 +71,12 @@ impl Solver {
         let ref_h = (sum_area as f64).sqrt() as usize;
 
         // ビーム
-        let beams_width = 150 / self.n;
-        let trial = 150 / self.n;
+        let beams_width = 300 / self.n;
+        let trial = 300 / self.n;
         let mut beams: BinaryHeap<(usize, Box)> = BinaryHeap::new();
         let r#box = Box::new(ref_h);
+        let mut hashes: HashSet<u64> = HashSet::new();
+        hashes.insert(calculate_hash(&r#box.order));
         beams.push((usize::MAX, r#box));
 
         // グッズを順に追加する
@@ -85,7 +95,12 @@ impl Solver {
                         (r, d) = r#box.opt_instruction(self.wh[i], 'L', r#box.start_col_i);
                         col_i = r#box.start_col_i;
                     }
-                    // TODO: ハッシュ関数で同一状態を確認
+                    // ハッシュ関数で同一状態を確認
+                    let mut order = r#box.order.clone();
+                    let b = if col_i == r#box.col_info.len() { -1 } else { r#box.col_info[col_i].2 as isize };
+                    order.push((r, d, b));
+                    let hash = calculate_hash(&order);
+                    if hashes.contains(&hash) { continue; } else { hashes.insert(hash); }
                     self.add(&mut r#box, i, r, d, col_i);  // グッズを配置
 
                     // プレイアウト
@@ -99,6 +114,7 @@ impl Solver {
                 }
             }
             beams = next_beams;
+            hashes = HashSet::new();
         }
 
         beams
