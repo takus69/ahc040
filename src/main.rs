@@ -71,7 +71,7 @@ impl Solver {
         let ref_h = (sum_area as f64).sqrt() as usize;
 
         // ビーム
-        let beams_width = 600 / self.n;  // self.tの方が良い
+        let beams_width = self.t.min(2400 / self.n);  // self.tの方が良い
         let trial = 600 / self.n;
         let mut beams: BinaryHeap<(usize, Box)> = BinaryHeap::new();
         let r#box = Box::new(ref_h);
@@ -124,7 +124,6 @@ impl Solver {
         let mut opt_estimated_score = usize::MAX;
         let mut opt_score = usize::MAX;
         let mut opt_real_score = usize::MAX;
-        let mut opt_box = Box::new(0);
 
         let mut beams = self.optimize();
         // Vecに格納しなおして、スコアの小さい方から順に回答する
@@ -134,7 +133,7 @@ impl Solver {
             target.push_back(r#box);
         }
 
-        for _ in 0..(self.t-1) {
+        for _ in 0..self.t {
             if target.is_empty() {
                 let r#box = Box::new(0);
                 self.ans(r#box);
@@ -144,15 +143,10 @@ impl Solver {
 
             let (estimated_score, score, real_score) = self.ans(r#box.clone());
 
-            if opt_estimated_score > estimated_score {
-                opt_box = r#box.clone();
-            }
             opt_estimated_score = opt_estimated_score.min(estimated_score);
             opt_score = opt_score.min(score);
             opt_real_score = opt_real_score.min(real_score);
         }
-        // 一番良さそうな結果を最後に提出
-        self.ans(opt_box);
 
         // 結果出力
         self.judge.comment(format!("estimated score: {}, score: {}, real_score: {}", opt_estimated_score, opt_score, opt_real_score));
