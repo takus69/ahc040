@@ -72,7 +72,7 @@ impl Solver {
 
         // ビーム
         let beams_width = self.t;
-        let trial = 1200 / self.n;
+        let trial = 600 / self.n;
         let mut beams: BinaryHeap<(usize, Box)> = BinaryHeap::new();
         let r#box = Box::new(ref_h);
         let mut hashes: HashSet<u64> = HashSet::new();
@@ -285,7 +285,7 @@ impl Box {
     }
 
     fn add(&mut self, wh: (usize, usize), r: usize, d: char, col_i: usize) {
-        let i = self.goods.len();
+        let mut i = self.goods.len();
         let b = if col_i == self.col_info.len() { -1 } else { self.col_info[col_i].2 as isize };
         if b == -1 {
             self.col_info.push((0, 0, i));
@@ -301,6 +301,9 @@ impl Box {
         self.max_x = self.max_x.max(x2);
         self.max_y = self.max_y.max(y2);
         let (mut max_x, mut sum_y, _) = self.col_info[col_i];
+        // if max_x > x2 {
+        //    i = self.col_info[col_i].2;
+        //}
         max_x = max_x.max(x2);
         sum_y += y2-y1;
         self.col_info[col_i] = (max_x, sum_y, i);
