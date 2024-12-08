@@ -71,8 +71,8 @@ impl Solver {
         let ref_h = (sum_area as f64).sqrt() as usize;
 
         // ビーム
-        let beams_width = 300 / self.n;
-        let trial = 300 / self.n;
+        let beams_width = 600 / self.n;  // self.tの方が良い
+        let trial = 600 / self.n;
         let mut beams: BinaryHeap<(usize, Box)> = BinaryHeap::new();
         let r#box = Box::new(ref_h);
         let mut hashes: HashSet<u64> = HashSet::new();
@@ -105,7 +105,7 @@ impl Solver {
 
                     // プレイアウト
                     let score = self.playout(&r#box, i+1);
-                    self.judge.comment(format!("trial: {}, playout score: {}", j, score));
+                    self.judge.comment(format!("trial: {}, hash: {:X}, playout score: {}", j, hash, score));
                     next_beams.push((score, r#box));
                     while next_beams.len() > beams_width {
                         next_beams.pop();
