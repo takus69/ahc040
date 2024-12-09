@@ -301,13 +301,15 @@ impl Box {
         self.max_x = self.max_x.max(x2);
         self.max_y = self.max_y.max(y2);
         let (mut max_x, mut sum_y, _) = self.col_info[col_i];
-        // if max_x > x2 {
-        //    i = self.col_info[col_i].2;
-        //}
-        max_x = max_x.max(x2);
-        sum_y += y2-y1;
-        self.col_info[col_i] = (max_x, sum_y, i);
-        self.area_info[col_i] += wh.0 * wh.1;
+        let (pre_max_x, _, _) = if col_i > 0 { self.col_info[col_i-1] } else { (0, 0, 0) };
+        if pre_max_x > x2 {
+            self.col_info[col_i] = (max_x, sum_y, self.col_info[col_i].2);
+        } else {
+            max_x = max_x.max(x2);
+            sum_y += y2-y1;
+            self.col_info[col_i] = (max_x, sum_y, i);
+            self.area_info[col_i] += wh.0 * wh.1;
+        }
         if sum_y > self.ref_h {
             self.start_col_i = col_i + 1;
         }
